@@ -106,7 +106,7 @@ class Path:
 def newSnapShot(E): 
     densities = {}
     for i in range(E):
-        u,v,k = map(int, input().split())
+        u,v,k = list(map(int, input().split()))
         densities[(u,v)] = k
     
     return densities
@@ -140,7 +140,6 @@ def excessCapacitiveChange(R, curr_cap, prev_cap):
 
 def getCapacities(g_in: Graph, density: dict) -> dict:
     try:
-        assert g_in.v == g_out.v
         assert g_in.e.keys() == density.keys()
     except:
         raise ValueError('Edges mismatch in the input arguments.')
@@ -225,4 +224,15 @@ def AdaptiveEdmunds(g: Graph, source, destination):
         while(z < len(P)):
             # I = I - F[z]
             z += 1
-        
+    
+def main():
+    v,e = list(map(int, input().split()))
+    g = Graph(v)
+    for i in range(e):
+        u,v,w = list(map(int, input().split()))
+        g.add_edge(u,v,w)
+    
+    AdaptiveEdmunds(g, 0, 7)
+
+if __name__ == '__main__':
+    main()
