@@ -145,18 +145,18 @@ def DFS(g: Graph, src, dest):
     dfs_util(g, src, dest, [False for _ in range(g.v)], path, paths)             
     return paths
 
-def init(Graph: Graph, source, destination):
+def getBottleNecks(R):
+    pass
+def AdaptiveEdmunds(Graph: Graph, source, destination):
     s = source
     t = destination
     D = newSnapShot()
     P = DFS(Graph, s,t)
     g_out = deepcopy(Graph)
-    #sort
-    for i in len(P):
-        P[i] = sorted(P[i])
 
+    P.sort()
     C = getCapacities(Graph, g_out, D)
-    R,F = EdmondsKarp(C,P)
+    R,F = EdmundsKarp(C,P)
     B = getBottleNecks(R)
 
     while True:
@@ -164,7 +164,14 @@ def init(Graph: Graph, source, destination):
         C_prev = C.copy()
         I = IncomingTrafficFlow()
         
+        if BNChangedRegime(B,C,C_prev,R) == True or excessCapacitiveChange(R,C,C_prev) == True:
+            R,F = EdmundsKarp(C,P)
+            B = getBottleNecks(R)
+            C_prev = C.copy()
+        
+        z = 0
 
-def AdaptiveEdmunds():
-    
-    
+        while(I > 0 and z < len(P)):
+            I = I - F[z]
+            z += 1
+        
