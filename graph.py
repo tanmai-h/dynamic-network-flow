@@ -1,5 +1,5 @@
 from math import inf
-from 
+from copy import deepcopy
 class Graph:
     def __init__(self, n):
         self.v = n
@@ -42,26 +42,52 @@ class Graph:
 class Path:
     def __init__(self):
         self.p = []
-        self.path_wt = inf
+        self._weight = 0
+        self.path_wtls = []
 
     def push(self, v, wt):
         self.p.append(v)
-        self.path_wt += wt
+        self._weight += wt
+        self.path_wtls.append(wt)
 
-    def __le__(self, p2: Path):
-        return self.path_wt <= p2.path_wt
+    def pop(self):
+        self.p.pop()
+        self._weight -= self.path_wtls.pop()
 
-    def __lt__(self, p2: Path):
-        return self.path_wt < p2.path_wt
+    def __le__(self, p2):
+        return self.weight <= p2.weight
 
-    def __eq__(self, p2: Path):
-        return self.path_wt == p2.path_wt
+    def __lt__(self, p2):
+        return self.weight < p2.weight
+
+    def __eq__(self, p2):
+        return self.weight == p2.weight
     
-    def __gt__(self, p2: Path):
-        return self.path_wt > p2.path_wt
+    def __gt__(self, p2):
+        return self.weight > p2.weight
 
-    def __ge__(self, p2: Path):
-        return self.path_wt >= p2.path_wt
+    def __ge__(self, p2):
+        return self.weight >= p2.weight
+
+    def __iter__(self):
+        self.curr_pos = 0
+        return self
+
+    def __next__(self):
+        if self.curr_pos >= len(self.p)-1:
+            raise StopIteration
+        self.curr_pos += 1
+        return (self.p[self.curr_pos], self.p[self.curr_pos+1])
+
+    def __repr__(self):
+        return f'Path({self.p}, {self.weight})'
+
+    def __str__(self):
+        return self.__repr__()
+
+    @property
+    def weight(self):
+        return self._weight
 
 def getCapacities(g_in: Graph, g_out: Graph, density: dict) -> dict:
     try:
@@ -85,17 +111,38 @@ def getCapacities(g_in: Graph, g_out: Graph, density: dict) -> dict:
         caps[edge] = (a**2)//(4*b)
         g_out.change_edge_weight(edge, (a - density[edge]*b)//1) 
 
-
+def EdmundsKarp(Caps: dict, paths):
+    r = Caps.copy()
+    f = []
+    for path in paths:
+        max_flow = inf
+        for edge in path:
+            if r[edge] < max_flow:
+                max_flow = r[edge]
+        for edge in path:
+            r[edge] -= max_flow
+        f.append(max_flow)
+    return r, f
+    
 def DFS(g: Graph, src, dest):
     paths = []
-    def dfs_util(g: Graph, src, dest, visited, path: Path):
+    path = Path()
+    path.push(src, 0)
+    def dfs_util(g: Graph, src, dest, visited, path: Path, all_paths: list):
         if src==dest:
-            return path
+            all_paths.append(deepcopy(path))
         for u in g.neighbors(src):
             if not visited[u]:
                 visited[u] = True
                 path.push(u, g.e[(src, u)])
-                dfs_util(g, u, dest, visited, path)
+                dfs_util(g, u, dest, visited, path, all_paths)
+                path.pop()
+                visited[u] = False
+
+    dfs_util(g, src, dest, [False for _ in range(g.v)], path, paths)             
+    return paths
+
+
 
         
     
