@@ -1,7 +1,7 @@
 from math import inf
 from copy import deepcopy
 from enum import Enum
-
+from random import randint
 class Regime(Enum):
     FREE_FLOW = 1
     TRANSIT = 2
@@ -103,19 +103,26 @@ class Path:
     def weight(self):
         return self._weight
 
+# def newSnapShot(E): 
+#     densities = {}
+#     for i in range(E):
+#         u,v,k = list(map(int, input().split()))
+#         densities[(u,v)] = k
+    
+#     return densities
 def newSnapShot(E): 
     densities = {}
     for i in range(E):
-        u,v,k = list(map(int, input().split()))
-        densities[(u,v)] = k
-    
+        u,v = list(map(int, input().split()))
+        densities[(u,v)] = randint(20,100)
+    print(densities)
     return densities
 
 def BNChangedRegime(bottle_necks, curr_dens, prev_dens):
     for edge in bottle_necks:
         if regime(curr_dens[edge]) != regime(prev_dens[edge]):
-            return False
-    return True
+            return True
+    return False
 
 def excessCapacitiveChange(R, curr_cap, prev_cap):
     # def calCapacity(density):
@@ -205,7 +212,7 @@ def AdaptiveEdmunds(g: Graph, source, destination):
     P.sort()
     C = getCapacities(g, D)
     R,F = EdmundsKarp(C,P)
-    B = getBottleNecks(R, s, t, P)
+    B = getBottleNecks(R, P, s, t)
 
     while True:
         D_prev = D
@@ -214,24 +221,29 @@ def AdaptiveEdmunds(g: Graph, source, destination):
         C = getCapacities(g, D)
         # I = IncomingTrafficFlow()
         
-        if BNChangedRegime(B,D,D_prev) or excessCapacitiveChange(R, C, C_prev):
+        a = BNChangedRegime(B,D,D_prev)
+        b = excessCapacitiveChange(R, C, C_prev) 
+        print(a,b)
+        if a or b:
+            print('Ran Again!')
             R,F = EdmundsKarp(C,P)
-            B = getBottleNecks(R, s, t, P)
+            B = getBottleNecks(R, P, s, t)
         
         z = 0
-
+        for edge in R:
+            print(edge, C[edge], C[edge] - R[edge])
         while(z < len(P)):
             # I = I - F[z]
             z += 1
-    
+
 def main():
     v,e = list(map(int, input().split()))
     g = Graph(v)
     for i in range(e):
         u,v,w = list(map(int, input().split()))
         g.add_edge(u,v,w)
-    
-    AdaptiveEdmunds(g, 0, 7)
+    s, d = list(map(int, input().split()))
+    AdaptiveEdmunds(g,s, d)
 
 if __name__ == '__main__':
     main()
