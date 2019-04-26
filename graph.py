@@ -7,12 +7,13 @@ class Regime(Enum):
     TRANSIT = 2
     CONGESTED = 3
 
-def regime(density):
+def regime(k):
     if k<=40:
         return Regime.FREE_FLOW
     if k<=65:
         return Regime.TRANSIT
     return Regime.CONGESTED
+
 class Graph:
     def __init__(self, n):
         self.v = n
@@ -132,14 +133,14 @@ def excessCapacitiveChange(R, curr_cap, prev_cap):
     #         return True
     # return False
     for edge in R:
-        if pre_cap[edge] - curr_cap[edge] > R[edge]:
+        if prev_cap[edge] - curr_cap[edge] > R[edge]:
             return True
     return False
 
-def getCapacities(g_in: Graph, g_out: Graph, density: dict) -> dict:
+
+def getCapacities(g_in: Graph, density: dict) -> dict:
     try:
         assert g_in.v == g_out.v
-        assert g_in.e.keys() == g_out.e.keys()
         assert g_in.e.keys() == density.keys()
     except:
         raise ValueError('Edges mismatch in the input arguments.')
@@ -156,7 +157,6 @@ def getCapacities(g_in: Graph, g_out: Graph, density: dict) -> dict:
             b = 0.265
 
         caps[edge] = (a**2)//(4*b)
-        g_out.change_edge_weight(edge, (a - density[edge]*b)//1) 
     return caps
 
 def EdmundsKarp(Caps: dict, paths):
@@ -190,31 +190,35 @@ def DFS(g: Graph, src, dest):
     dfs_util(g, src, dest, [False for _ in range(g.v)], path, paths)             
     return paths
 
-def getBottleNecks(R):
-    pass
+def getBottleNecks(R, P, src, dest):
+    BN = []
+    for path in P:
+        for edge in path:
+            if R[edge] == 0:
+                BN.append(edge)
+                break
+    return BN
 
 def AdaptiveEdmunds(g: Graph, source, destination):
     s = source
     t = destination
-    D = newSnapShot()
+    D = newSnapShot(len(g.e))
     P = DFS(g, s,t)
-    g_out = deepcopy(Graph)
-
     P.sort()
-    C = getCapacities(g, g_out, D)
+    C = getCapacities(g, D)
     R,F = EdmundsKarp(C,P)
-    B = getBottleNecks(R)
+    B = getBottleNecks(R, s, t, P)
 
     while True:
         D_prev = D
-        D = newSnapShot()
+        D = newSnapShot(len(g.e))
         C_prev = C
-        C = getCapacities(g, g_out, D)
+        C = getCapacities(g, D)
         # I = IncomingTrafficFlow()
         
         if BNChangedRegime(B,D,D_prev) or excessCapacitiveChange(R, C, C_prev):
             R,F = EdmundsKarp(C,P)
-            B = getBottleNecks(R)
+            B = getBottleNecks(R, s, t, P)
         
         z = 0
 
