@@ -118,6 +118,9 @@ def newSnapShot(E):
     print(densities)
     return densities
 
+def InfluxTraffic():
+    return int(input())
+
 def BNChangedRegime(bottle_necks, curr_dens, prev_dens):
     for edge in bottle_necks:
         if regime(curr_dens[edge]) != regime(prev_dens[edge]):
@@ -151,17 +154,13 @@ def getCapacities(g_in: Graph, density: dict) -> dict:
         raise ValueError('Edges mismatch in the input arguments.')
     caps = {}
     for edge in g_in.e:
-        if density[edge] <= 40:
-            a = 50
-            b = 0.098
-        elif density[edge] <= 65:
-            a = 81.4
-            b = 0.913
+        r = regime(density[edge])
+        if r == Regime.FREE_FLOW:
+            caps[edge] = 6378
+        elif r == Regime.TRANSIT:
+            caps[edge] = 1814
         else:
-            a = 40
-            b = 0.265
-
-        caps[edge] = (a**2)//(4*b)
+            caps[edge] = 1509
     return caps
 
 def EdmundsKarp(Caps: dict, paths):
@@ -204,22 +203,30 @@ def getBottleNecks(R, P, src, dest):
                 break
     return BN
 
-def AdaptiveEdmunds(g: Graph, source, destination):
+def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
+    z = 0
     s = source
     t = destination
+    i = 0
+    i += InfluxTraffic()
     D = newSnapShot(len(g.e))
     P = DFS(g, s,t)
     P.sort()
     C = getCapacities(g, D)
     R,F = EdmundsKarp(C,P)
     B = getBottleNecks(R, P, s, t)
-
-    while True:
+    for flow in F:
+        if i >= flow:
+            i -= flow
+        else:
+            i = 0
+            break
+    while z < loopCount:
         D_prev = D
+        i += InfluxTraffic()
         D = newSnapShot(len(g.e))
         C_prev = C
         C = getCapacities(g, D)
-        # I = IncomingTrafficFlow()
         
         a = BNChangedRegime(B,D,D_prev)
         b = excessCapacitiveChange(R, C, C_prev) 
@@ -229,21 +236,25 @@ def AdaptiveEdmunds(g: Graph, source, destination):
             R,F = EdmundsKarp(C,P)
             B = getBottleNecks(R, P, s, t)
         
-        z = 0
         for edge in R:
-            print(edge, C[edge], C[edge] - R[edge])
-        while(z < len(P)):
-            # I = I - F[z]
-            z += 1
+            print(f'Edge: {edge}, Flow: {C[edge] - R[edge]}, Max Capacity: {C[edge]}')
+        for flow in F:
+            if i >= flow:
+                i -= flow
+            else:
+                i = 0
+                break
+        print('Remainig Influx on source:', i)
+        z += 1
 
 def main():
     v,e = list(map(int, input().split()))
     g = Graph(v)
-    for i in range(e):
+    for _ in range(e):
         u,v,w = list(map(int, input().split()))
         g.add_edge(u,v,w)
     s, d = list(map(int, input().split()))
-    AdaptiveEdmunds(g,s, d)
+    AdaptiveEdmunds(g,s, d, 8)
 
 if __name__ == '__main__':
     main()
