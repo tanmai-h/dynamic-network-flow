@@ -90,9 +90,9 @@ class Path:
     def __next__(self):
         if self.curr_pos >= len(self.p)-1:
             raise StopIteration
+        res =  (self.p[self.curr_pos], self.p[self.curr_pos+1])
         self.curr_pos += 1
-        return (self.p[self.curr_pos], self.p[self.curr_pos+1])
-
+        return res
     def __repr__(self):
         return f'Path({self.p}, {self.weight})'
 
@@ -118,7 +118,6 @@ def BNChangedRegime(bottle_necks, curr_dens, prev_dens):
     return True
 
 def excessCapacitiveChange(R, curr_cap, prev_cap):
-    
     # def calCapacity(density):
     #     reg = regime(density)
     #     if reg == Regime.FREE_FLOW:
