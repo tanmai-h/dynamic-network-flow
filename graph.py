@@ -102,8 +102,13 @@ class Path:
     def weight(self):
         return self._weight
 
-def newSnapShot():
-    pass
+def newSnapShot(E): 
+    densities = {}
+    for i in range(E):
+        u,v,k = map(int, input().split())
+        densities[(u,v)] = k
+    
+    return densities
 
 def BNChangedRegime(bottle_necks, curr_dens, prev_dens):
     for edge in bottle_necks:
@@ -130,7 +135,6 @@ def excessCapacitiveChange(R, curr_cap, prev_cap):
         if pre_cap[edge] - curr_cap[edge] > R[edge]:
             return True
     return False
-
 
 def getCapacities(g_in: Graph, g_out: Graph, density: dict) -> dict:
     try:
