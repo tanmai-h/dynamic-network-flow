@@ -113,3 +113,5 @@ def AdaptiveEdmondKarp():
             #Direct F[z] amount of Flow through path P[z]            
             I = I - F[z]
             z = z + 1
+
+def DFS(g: Graph, )
