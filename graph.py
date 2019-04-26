@@ -1,5 +1,6 @@
 from math import inf
 from copy import deepcopy
+
 class Graph:
     def __init__(self, n):
         self.v = n
@@ -89,6 +90,8 @@ class Path:
     def weight(self):
         return self._weight
 
+def newSnapShot():
+    pass
 def getCapacities(g_in: Graph, g_out: Graph, density: dict) -> dict:
     try:
         assert g_in.v == g_out.v
@@ -142,7 +145,26 @@ def DFS(g: Graph, src, dest):
     dfs_util(g, src, dest, [False for _ in range(g.v)], path, paths)             
     return paths
 
+def init(Graph: Graph, source, destination):
+    s = source
+    t = destination
+    D = newSnapShot()
+    P = DFS(Graph, s,t)
+    g_out = deepcopy(Graph)
+    #sort
+    for i in len(P):
+        P[i] = sorted(P[i])
 
+    C = getCapacities(Graph, g_out, D)
+    R,F = EdmondsKarp(C,P)
+    B = getBottleNecks(R)
 
+    while True:
+        D = newSnapShot()
+        C_prev = C.copy()
+        I = IncomingTrafficFlow()
         
+
+def AdaptiveEdmunds():
+    
     

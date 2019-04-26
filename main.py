@@ -1,27 +1,52 @@
 from math import inf
+import random
 
 def newSnapShot():
     '''
         returns the traffic at the present time
     '''
-    pass
-def getCapacties(k, a, b):
-    '''
-        k = traffic density (vehicles/mile)
-        a,b > 0
-        q = traffic flow = vk 
-        v = a -bk, avg velocity
-    '''
-    qmax = a**a / (4*b)     #max flow q for given (a,b) => a^2 /(4b)
-    return qmax
+    n,e = map(int, input().split())
+    G = [[] for _ in range(n)]
+    for i in range(e):
+        u,v,w = map(int, input().split())
+        G[u].append((v,w))
 
-def _sort(edges):
+    matrix = [[None for _ in range(n)] for _ in range(n)]
+    for u in range(n):
+        for v,w in G[u]:
+            matrix[u][v] =  random.randint(35,80)
+    
+    return matrix   #Density matrix
+
+def getCapacties(G, D):
+    C = D.copy()
+    c = 0
+    for u in range(len(G)):
+        for v,w in G[u]:
+            d = D[u][v]
+            if d <= 40:
+                c = 6378
+            elif d >= 40 and d <= 65:
+                c = 1815
+            else:
+                c = 1510
+            C[u][v] = c
+    
+    return C    #capacities
+
+def _sort(Graph, L):
     ''' 
-    list of paths sorted by either length or time, depending
-    upon the approach 
+    list of paths sorted by length
     '''
-    pass
 
+    edges = []
+    for u in Graph:
+        for v in Graph[u]:
+            edges.append((u,v))
+    edges = sorted(edges, lambda x,y : L[x][y])
+
+    return edges
+    
 def BNChangedRegime(B,C,CX,R):
     # B= bottlnecks, C = capacties, R=from edmonkarp residual cap
 
@@ -37,6 +62,18 @@ def IncomingTrafficFlow():
         traffic at the source in the present snapshot
     ''' 
 
+
+def DFS(G,s,t,visited,curr,paths):
+    visited[s] = True
+    if s == t:
+        paths.append(curr)
+        pass
+    else:
+        for u in range(len(G)):
+            for v in G[u]:
+                if visited[v] == False:
+                    DFS(G,v,t,visited,curr+[v],paths)
+                                        
 def setup(n,p):
     '''
     D : Density Matrix
