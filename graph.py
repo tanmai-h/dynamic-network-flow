@@ -103,20 +103,20 @@ class Path:
     def weight(self):
         return self._weight
 
-# def newSnapShot(E): 
-#     densities = {}
-#     for i in range(E):
-#         u,v,k = list(map(int, input().split()))
-#         densities[(u,v)] = k
-    
-#     return densities
 def newSnapShot(E): 
     densities = {}
     for i in range(E):
-        u,v = list(map(int, input().split()))
-        densities[(u,v)] = randint(20,100)
-    print(densities)
+        u,v,k = list(map(int, input().split()))
+        densities[(u,v)] = k
+    
     return densities
+# def newSnapShot(E): 
+#     densities = {}
+#     for i in range(E):
+#         u,v = list(map(int, input().split()))
+#         densities[(u,v)] = randint(20,100)
+#     print(densities)
+#     return densities
 
 def InfluxTraffic():
     return int(input())
@@ -221,6 +221,11 @@ def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
         else:
             i = 0
             break
+    for edge in R:    
+        print(f'Edge: {edge}, Flow: {C[edge] - R[edge]}, Max Capacity: {C[edge]}')
+    print('Remainig Influx on source:', i)
+    print()
+
     while z < loopCount:
         D_prev = D
         i += InfluxTraffic()
@@ -228,23 +233,21 @@ def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
         C_prev = C
         C = getCapacities(g, D)
         
-        a = BNChangedRegime(B,D,D_prev)
-        b = excessCapacitiveChange(R, C, C_prev) 
-        print(a,b)
-        if a or b:
+        if BNChangedRegime(B,D,D_prev) or excessCapacitiveChange(R, C, C_prev):
             print('Ran Again!')
             R,F = EdmundsKarp(C,P)
             B = getBottleNecks(R, P, s, t)
         
-        for edge in R:
-            print(f'Edge: {edge}, Flow: {C[edge] - R[edge]}, Max Capacity: {C[edge]}')
         for flow in F:
             if i >= flow:
                 i -= flow
             else:
                 i = 0
                 break
+        for edge in R:
+            print(f'Edge: {edge}, Flow: {C[edge] - R[edge]}, Max Capacity: {C[edge]}')
         print('Remainig Influx on source:', i)
+        print()
         z += 1
 
 def main():
@@ -254,7 +257,7 @@ def main():
         u,v,w = list(map(int, input().split()))
         g.add_edge(u,v,w)
     s, d = list(map(int, input().split()))
-    AdaptiveEdmunds(g,s, d, 8)
+    AdaptiveEdmunds(g,s, d, 7)
 
 if __name__ == '__main__':
     main()
