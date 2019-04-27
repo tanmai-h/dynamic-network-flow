@@ -14,6 +14,11 @@ def regime(k):
         return Regime.TRANSIT
     return Regime.CONGESTED
 
+def stdize(edge):
+    if edge[0] <= edge[1]:
+        return edge
+    return (edge[1], edge[0])
+
 class Graph:
     def __init__(self, n):
         self.v = n
@@ -26,11 +31,13 @@ class Graph:
         if (u,v) in self.e:
             return
         self.e[(u,v)] = wt
+        # self.e[(v,u)] = wt
         self.adj_list[u].add(v)
-        # self.adj_list[v].append(u)
+        self.adj_list[v].add(u)
         return self
     
-    def change_edge_weight(self, edge, wt):
+    def change_edge_weight(self, e, wt):
+        edge = self.e[stdize((edge))]
         if edge in self.e and wt > 0 :
             self.e[edge] = wt
             return self
@@ -42,6 +49,9 @@ class Graph:
             self.adj_list[edge[0]].remove(edge[1])
         except:
             raise KeyError
+
+    def get_edge_weight(self, edge):
+        return self.e[stdize(edge)]
 
     def neighbors(self, v):
         assert v >= 0 and v < self.v
@@ -173,13 +183,13 @@ def getCapacities(g_in: Graph, density: dict) -> dict:
 def EdmundsKarp(Caps: dict, paths):
     r = Caps.copy()
     f = []
-    for path in paths:
+    for path in paths: 
         max_flow = inf
         for edge in path:
-            if r[edge] < max_flow:
-                max_flow = r[edge]
+            if r[stdize(edge)] < max_flow:
+                max_flow = r[stdize(edge)]
         for edge in path:
-            r[edge] -= max_flow
+            r[stdize(edge)] -= max_flow
         f.append(max_flow)
     return r, f
     
@@ -188,12 +198,13 @@ def DFS(g: Graph, src, dest):
     path = Path()
     path.push(src, 0)
     def dfs_util(g: Graph, src, dest, visited, path: Path, all_paths: list):
+        # print(path)
         if src==dest:
             all_paths.append(deepcopy(path))
         for u in g.neighbors(src):
             if not visited[u]:
                 visited[u] = True
-                path.push(u, g.e[(src, u)])
+                path.push(u, g.get_edge_weight((src, u)))
                 dfs_util(g, u, dest, visited, path, all_paths)
                 path.pop()
                 visited[u] = False
@@ -205,8 +216,8 @@ def getBottleNecks(R, P, src, dest):
     BN = set()
     for path in P:
         for edge in path:
-            if R[edge] == 0:
-                BN.add(edge)
+            if R[stdize(edge)] == 0:
+                BN.add(stdize(edge))
                 break
     return BN
 
@@ -219,6 +230,10 @@ def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
     D = newSnapShot(len(g.e))
     P = DFS(g, s,t)
     P.sort()
+    print('All paths:')
+    for p  in P:
+        print(p)
+    print()
     C = getCapacities(g, D)
     R,F = EdmundsKarp(C,P)
     B = getBottleNecks(R, P, s, t)
@@ -228,6 +243,8 @@ def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
         else:
             i = 0
             break
+    print('*** Flows ***')
+    print()
     for edge in R:    
         print(f'Edge: {edge}, Flow: {C[edge] - R[edge]}, Max Capacity: {C[edge]}')
     print('Remainig Influx on source:', i)
