@@ -105,10 +105,12 @@ class Path:
 
 def newSnapShot(E): 
     densities = {}
-    for i in range(E):
-        u,v,k = list(map(int, input().split()))
-        densities[(u,v)] = k
-    
+    try:
+        for i in range(E):
+            u,v,k = list(map(int, input().split()))
+            densities[(u,v)] = k
+    except:
+        print('New Input not provided! Using last input snapshot')
     return densities
 # def newSnapShot(E): 
 #     densities = {}
@@ -119,7 +121,12 @@ def newSnapShot(E):
 #     return densities
 
 def InfluxTraffic():
-    return int(input())
+    a = 0
+    try:
+        a = int(input())
+    except:
+        pass
+    return a
 
 def BNChangedRegime(bottle_necks, curr_dens, prev_dens):
     for edge in bottle_necks:
@@ -195,11 +202,11 @@ def DFS(g: Graph, src, dest):
     return paths
 
 def getBottleNecks(R, P, src, dest):
-    BN = []
+    BN = set()
     for path in P:
         for edge in path:
             if R[edge] == 0:
-                BN.append(edge)
+                BN.add(edge)
                 break
     return BN
 
@@ -226,10 +233,10 @@ def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
     print('Remainig Influx on source:', i)
     print()
 
-    while z < loopCount:
+    while z<loopCount or i>0:
         D_prev = D
         i += InfluxTraffic()
-        D = newSnapShot(len(g.e))
+        D = newSnapShot(len(g.e)) or D_prev
         C_prev = C
         C = getCapacities(g, D)
         
@@ -245,7 +252,8 @@ def AdaptiveEdmunds(g: Graph, source, destination, loopCount=inf):
                 i = 0
                 break
         for edge in R:
-            print(f'Edge: {edge}, Flow: {C[edge] - R[edge]}, Max Capacity: {C[edge]}')
+            print(f'Edge: {edge}, Flow: {max(C[edge] - R[edge], 0)}, Max Capacity: {C[edge]}')
+        print(f'Bottlenecks: {B}')
         print('Remainig Influx on source:', i)
         print()
         z += 1
@@ -257,7 +265,7 @@ def main():
         u,v,w = list(map(int, input().split()))
         g.add_edge(u,v,w)
     s, d = list(map(int, input().split()))
-    AdaptiveEdmunds(g,s, d, 7)
+    AdaptiveEdmunds(g,s, d, 8)
 
 if __name__ == '__main__':
     main()
